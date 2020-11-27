@@ -2,7 +2,7 @@ package com.model2.mvc.web.product;
 
 import com.model2.mvc.common.Page;
 import com.model2.mvc.common.Search;
-import com.model2.mvc.service.Product.ProductService;
+import com.model2.mvc.service.product.ProductService;
 import com.model2.mvc.service.domain.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

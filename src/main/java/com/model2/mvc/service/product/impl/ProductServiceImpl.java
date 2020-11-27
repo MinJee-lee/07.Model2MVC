@@ -1,8 +1,8 @@
-package com.model2.mvc.service.Product.impl;
+package com.model2.mvc.service.product.impl;
 
 import com.model2.mvc.common.Search;
-import com.model2.mvc.service.Product.ProductDao;
-import com.model2.mvc.service.Product.ProductService;
+import com.model2.mvc.service.product.ProductDao;
+import com.model2.mvc.service.product.ProductService;
 import com.model2.mvc.service.domain.Product;
 import lombok.Getter;
 import lombok.Setter;

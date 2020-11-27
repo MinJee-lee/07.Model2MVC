@@ -1,8 +1,7 @@
 package com.model2.mvc.web.product;
 
-import com.model2.mvc.service.Product.ProductService;
+import com.model2.mvc.service.product.ProductService;
 import com.model2.mvc.service.domain.Product;
-import com.model2.mvc.service.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PathVariable;

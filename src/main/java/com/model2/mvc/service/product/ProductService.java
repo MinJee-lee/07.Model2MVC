@@ -1,4 +1,4 @@
-package com.model2.mvc.service.Product;
+package com.model2.mvc.service.product;
 
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
