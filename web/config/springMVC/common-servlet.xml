@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DispatcherServlet 라이브러리 존재를 확인 하고 연결 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:context="http://www.springframework.org/schema/context"
+
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation=
+			   "http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd
+
+				http://www.springframework.org/schema/context
+				http://www.springframework.org/schema/context/spring-context.xsd
+
+				http://www.springframework.org/schema/mvc
+				http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+    
+   <!-- :: 공통적인 사항을 설정한 common-servlet.xml 사용. -->
+    <!--  ㅇ 어노테이션 기반 :: Spring Framework 사용.
+    		ㅇ @Controller annotation 선언된 Bean 만 Wiring
+		   ㅇ @Service / @Repository  annotation 선언된 Bean 은 Scan 제외
+
+		   context:annotation-config 은 Bean을 등록하는 작업을 수행하지 않는다.
+		   context:component-scan 은 Bean을 등록하는 작업을 수행한다.
+		   context:component-scan을 선언했다면 context:annotation-config를 선언할 필요가 없다.
+		   -->
+
+	<context:component-scan base-package="com.model2.mvc.web">
+	<!-- base-package는 전부 -->
+		<context:include-filter 	type="annotation"		expression="org.springframework.stereotype.Controller" />
+		<!-- include 는 뒤에꺼(Controller)선택-->
+		<context:exclude-filter 	type="annotation" 	expression="org.springframework.stereotype.Service"/>
+		<!-- exclude 는 뒤에꺼 선택 안함-->
+		<context:exclude-filter 	type="annotation" 	expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+
+      
+	 <!--  ㅇ 어노테이션 기반 :: Spring Framework 사용.
+    		ㅇ @Controller annotation 선언된 Bean 만 Wiring
+		   ㅇ @Service / @Repository  annotation 선언된 Bean 은 Scan 제외
+
+	-->
+	<context:component-scan base-package="com.model2.mvc.web">
+		<context:include-filter 	type="annotation"		expression="org.springframework.stereotype.Controller" />
+		<!-- 세션 검사를 하지 않는 페이지 exclude-->
+		<context:exclude-filter 	type="annotation" 	expression="org.springframework.stereotype.Service"/>
+
+		<context:exclude-filter 	type="annotation" 	expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+
+
+	<!-- ////////////////////////////////////////// 추가 ,  변경된 부분 ////////////////////////////////////////////////// -->
+	<!-- ■ DefaultAnnotationHandlerMapping 설정 등 기타 Annotation 기반
+            모든 기능을 사용 할 수 있는 아래의 설정으로 변경
+
+            Spring MVC @Controller에 요청을 보내기 위해 필요한 HandlerMapping과 HandlerAdapter를 Bean으로 등록.
+
+            HandlerMapping : HTTP 요청정보를 이용해서 컨트롤러를 찾아주는 기능
+   			HandlerAdapter : HandlerMapping을 통해 찾은 컨트롤러를 직접 실행하는 기능을 수행
+
+            Bean을 생성하기 위해 xml 파일에 context:component-scan을 명시하면 이 태그를 포함하지 않아도 MVC 어플리케이션을 작동한다.-->
+	<mvc:annotation-driven /><!-- Annotation 활성화-->
+
+	<!-- ■ Annotation 기반의 모든 기능을 사용 할 수 있는 설정
+	          <mvc:annotation-driven /> 사용으로 interceptor 를 직접
+	          DefaultAnnotationHandlerMapping 에 주입 할 수 없으니
+	       	  아래의 설정방법으로 interceptor 주입-->
+
+	<!-- 로그인을 처리하는 인터셉터 -->
+	<!-- interceptor 는 등록된 순서대로 순차적으로 실행 된다 -->
+
+	<!-- <interceptors> </interceptors> 태그 안에 <mapping path="" /> 로 설정을 해주면
+	interceptor가 컨트롤러를 제어 할 수 있게 된다.
+	컨트롤러 단위별로 하나씩 해도 되며, bean으로 선언된 interceptor에
+	해당하는 기능을 통해 제어 하고 싶은 컨트롤러를 지정해 주면된다.-->
+
+	<mvc:interceptors>
+		<!-- 세션이 있는지 검사하는 인터셉터 -->
+		<mvc:interceptor>
+			<!-- path 에 있는 서블릿이 호출될때 ref 에 참조되어 있는 interceprot 를 샐행하여 세션을 관리한다. -->
+			<mvc:mapping path="/user/**"/>
+			<bean class="com.model2.mvc.common.web.LogonCheckInterceptor" />
+		</mvc:interceptor>
+
+	</mvc:interceptors>
+	<!-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+
+	<!-- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            ::  Annotation 지원 HandlerMapping 선언
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+        <property name="order" value="0"/>
+       <property name="interceptors" ref="logonCheckInterceptor"/>
+    </bean>
+
+      :: Interceptor 선언 : 로그인 유무확인.
+   <bean id="logonCheckInterceptor"	class="com.model2.mvc.common.web.LogonCheckInterceptor" />
+   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////-->
+
+
+	<!--  :: ViewResolver 선언 -->
+	<bean id="viewResolver"
+		  class="org.springframework.web.servlet.view.InternalResourceViewResolver" />
+
+
+	<!-- ////////////////////////////////////////// 추가 ,  변경된 부분 ////////////////////////////////////////////////// -->
+	<!--
+		■ / 형식의 Mapping 은 모든(정적,동적 자원) 요청시 처리책임
+		■ 정적자원 요청시 DispatcherServlet 에게 처리방법지정
+	    ■ 정적자원요청 (아래의 URI 포함 요청)시  처리 경로 location 지정
+
+	    실제 PJT 진행시 일반적으로 resources 폴더를 만들고 폴더내부에
+	     css , image, js 등 넣어 관리하며 아래와 같이 1번의 설정으로 관리
+	     굳이 세개를 동시에 쓸 필요가 없음
+	     <mvc:resources mapping="/resources/**" location="/resources/" />
+	-->
+	<mvc:resources mapping="/css/**" location="/css/" />
+	<mvc:resources mapping="/images/**" location="/images/" />
+	<mvc:resources mapping="/javascript/**" location="/javascript/" />
+	<!-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+
+	<!-- 	:: exception resolver  선언 :: 서술적 / 선언적 예외처리
+			:: Servlet 에서의 선언적 예외처리를 다시 생각하며....  -->
+	<bean id="exceptionResolver"
+		  class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.NullPointerException">/common/nullError.jsp</prop>
+				<prop key="java.lang.NumberFormatException">/common/numberFormatError.jsp</prop>
+			</props>
+		</property>
+
+		<property name="defaultErrorView"	value="/common/error.jsp" />
+
+	</bean>
+
+</beans>
